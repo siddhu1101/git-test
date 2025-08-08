@@ -13,6 +13,8 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.LinkedHashSet;
+
 @Service
 public class AdminUserService {
     private final AppUserRepository appUserRepository;
@@ -37,7 +39,7 @@ public class AdminUserService {
         user.setUsername(request.username());
         user.setPassword(passwordEncoder.encode(request.password()));
         user.setRole(Role.ADMIN);
-        user.setCampus(campus);
+        user.setCampuses(new LinkedHashSet<>(java.util.List.of(campus)));
         user.setMustChangePassword(true);
         appUserRepository.save(user);
     }
@@ -50,19 +52,15 @@ public class AdminUserService {
         }
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
         boolean isSuperAdmin = auth.getAuthorities().stream().anyMatch(a -> a.getAuthority().equals("ROLE_SUPER_ADMIN"));
-        Campus campus;
         if (isSuperAdmin) {
-            throw new IllegalArgumentException("Super admin must use createAdmin with campusId or provide a specialized endpoint");
-        } else {
-            // Admin creates user within own campus
-            AppUser admin = appUserRepository.findByUsername(auth.getName()).orElseThrow();
-            campus = admin.getCampus();
+            throw new IllegalArgumentException("Super admin must create users via admins or extend API to specify campuses");
         }
+        AppUser admin = appUserRepository.findByUsername(auth.getName()).orElseThrow();
         AppUser user = new AppUser();
         user.setUsername(request.username());
         user.setPassword(passwordEncoder.encode(request.password()));
         user.setRole(Role.USER);
-        user.setCampus(campus);
+        user.setCampuses(new LinkedHashSet<>(admin.getCampuses()));
         user.setMustChangePassword(true);
         appUserRepository.save(user);
     }

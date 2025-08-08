@@ -30,11 +30,10 @@ public class CampusController {
             return ResponseEntity.ok(campusRepository.findAll());
         }
         var claims = com.example.campusapp.service.RequestContextClaimsHolder.getClaims();
-        Long campusId = claims != null ? claims.get("campusId", Long.class) : null;
-        if (campusId == null) return ResponseEntity.ok(java.util.List.of());
-        return campusRepository.findById(campusId)
-                .map(c -> ResponseEntity.ok(java.util.List.of(c)))
-                .orElse(ResponseEntity.ok(java.util.List.of()));
+        java.util.List<Integer> campusIds = claims != null ? claims.get("campusIds", java.util.List.class) : java.util.List.of();
+        if (campusIds == null || campusIds.isEmpty()) return ResponseEntity.ok(java.util.List.of());
+        var ids = campusIds.stream().map(Long::valueOf).toList();
+        return ResponseEntity.ok(campusRepository.findAllById(ids));
     }
 
     @GetMapping("/{id}")

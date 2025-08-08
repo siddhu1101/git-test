@@ -40,7 +40,7 @@ public class AuthService {
         SecurityContextHolder.getContext().setAuthentication(authentication);
         AppUser user = appUserRepository.findByUsername(request.username()).orElseThrow();
         String token = jwtService.generateToken(user, user.isMustChangePassword());
-        Long campusId = user.getCampus() != null ? user.getCampus().getId() : null;
+        Long campusId = null; // kept for backward compatibility in response; use claims.campusIds instead
         return new AuthDtos.AuthResponse(token, user.getRole().name(), campusId, user.isMustChangePassword());
     }
 

@@ -20,6 +20,7 @@ public class AuthController {
 
     @PostMapping("/login")
     public ResponseEntity<AuthDtos.AuthResponse> login(@Valid @RequestBody AuthDtos.LoginRequest request) {
+        // Note: campusIds are provided in JWT claims now; response's campusId is deprecated
         return ResponseEntity.ok(authService.login(request));
     }
 

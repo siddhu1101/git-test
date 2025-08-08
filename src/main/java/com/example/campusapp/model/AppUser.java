@@ -1,6 +1,8 @@
 package com.example.campusapp.model;
 
 import jakarta.persistence.*;
+import java.util.LinkedHashSet;
+import java.util.Set;
 
 @Entity
 @Table(name = "app_user")
@@ -19,8 +21,13 @@ public class AppUser {
     @Column(nullable = false)
     private Role role;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    private Campus campus; // null for SUPER_ADMIN
+    @ManyToMany(fetch = FetchType.LAZY)
+    @JoinTable(
+            name = "app_user_campuses",
+            joinColumns = @JoinColumn(name = "user_id"),
+            inverseJoinColumns = @JoinColumn(name = "campus_id")
+    )
+    private Set<Campus> campuses = new LinkedHashSet<>();
 
     @Column(nullable = false)
     private boolean active = true;
@@ -36,8 +43,8 @@ public class AppUser {
     public void setPassword(String password) { this.password = password; }
     public Role getRole() { return role; }
     public void setRole(Role role) { this.role = role; }
-    public Campus getCampus() { return campus; }
-    public void setCampus(Campus campus) { this.campus = campus; }
+    public Set<Campus> getCampuses() { return campuses; }
+    public void setCampuses(Set<Campus> campuses) { this.campuses = campuses; }
     public boolean isActive() { return active; }
     public void setActive(boolean active) { this.active = active; }
     public boolean isMustChangePassword() { return mustChangePassword; }

@@ -6,6 +6,8 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
+import java.util.List;
+
 @Service
 public class AccessControlService {
 
@@ -15,10 +17,12 @@ public class AccessControlService {
         boolean isSuperAdmin = auth.getAuthorities().stream()
                 .anyMatch(a -> a.getAuthority().equals("ROLE_" + Role.SUPER_ADMIN.name()));
         if (isSuperAdmin) return true;
-        Object claimsObj = RequestContextClaimsHolder.getClaims();
-        if (claimsObj instanceof Claims claims) {
-            Long userCampusId = claims.get("campusId", Long.class);
-            return userCampusId != null && userCampusId.equals(campusId);
+        Claims claims = RequestContextClaimsHolder.getClaims();
+        if (claims != null) {
+            List<Integer> campusIds = claims.get("campusIds", List.class);
+            if (campusIds != null) {
+                return campusIds.stream().map(Long::valueOf).anyMatch(id -> id.equals(campusId));
+            }
         }
         return false;
     }

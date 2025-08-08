@@ -11,8 +11,10 @@ import org.springframework.stereotype.Service;
 import java.security.Key;
 import java.time.Instant;
 import java.util.Date;
+import java.util.List;
 import java.util.Map;
 import java.util.function.Function;
+import java.util.stream.Collectors;
 
 @Service
 public class JwtService {
@@ -29,9 +31,12 @@ public class JwtService {
     }
 
     public String generateToken(AppUser user, boolean mustChangePassword) {
+        List<Long> campusIds = user.getCampuses() == null ? List.of() : user.getCampuses().stream()
+                .map(c -> c.getId())
+                .collect(Collectors.toList());
         Map<String, Object> claims = Map.of(
                 "role", user.getRole().name(),
-                "campusId", user.getCampus() != null ? user.getCampus().getId() : null,
+                "campusIds", campusIds,
                 "mcp", mustChangePassword
         );
         Instant now = Instant.now();
