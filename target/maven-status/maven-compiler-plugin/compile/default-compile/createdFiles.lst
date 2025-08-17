@@ -10,6 +10,7 @@ com/example/campusapp/model/MetricData.class
 com/example/campusapp/controller/AuthController.class
 com/example/campusapp/model/City.class
 com/example/campusapp/service/RequestContextClaimsHolder.class
+com/example/campusapp/dto/AuthDtos$CountryProfile.class
 com/example/campusapp/repo/CityRepository.class
 com/example/campusapp/service/AppUserDetailsService.class
 com/example/campusapp/controller/CityController.class
@@ -20,8 +21,10 @@ com/example/campusapp/service/AccessControlService.class
 com/example/campusapp/service/AdminUserService.class
 com/example/campusapp/model/Campus.class
 com/example/campusapp/repo/MetricDataRepository.class
+com/example/campusapp/service/AuthService$1Row.class
 com/example/campusapp/dto/AuthDtos$LoginRequest.class
 com/example/campusapp/model/AppUser.class
+com/example/campusapp/dto/AuthDtos$CityProfile.class
 com/example/campusapp/security/RequestClaimsPropagationFilter.class
 com/example/campusapp/dto/AuthDtos$CreateAdminRequest.class
 com/example/campusapp/config/BootstrapConfig.class

@@ -18,7 +18,10 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.ArrayList;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 
 @Service
 public class AuthService {
@@ -53,7 +56,6 @@ public class AuthService {
         String token = jwtService.generateToken(user, user.isMustChangePassword());
         Long campusId = null; // kept for backward compatibility in response; use claims.campusIds instead
 
-        List<AuthDtos.CampusProfile> campusProfiles = new ArrayList<>();
         List<Campus> accessibleCampuses;
         boolean isSuperAdmin = user.getRole() == com.example.campusapp.model.Role.SUPER_ADMIN;
         if (isSuperAdmin) {
@@ -61,6 +63,10 @@ public class AuthService {
         } else {
             accessibleCampuses = user.getCampuses() == null ? List.of() : new ArrayList<>(user.getCampuses());
         }
+
+        record Row(Long countryId, String countryName, Long cityId, String cityName, AuthDtos.CampusProfile campusProfile) {}
+
+        List<Row> rows = new ArrayList<>();
         for (Campus campus : accessibleCampuses) {
             var city = campus.getCity();
             var country = city != null ? city.getCountry() : null;
@@ -71,15 +77,46 @@ public class AuthService {
             AuthDtos.CampusProfile cp = new AuthDtos.CampusProfile(
                     campus.getId(),
                     campus.getName(),
-                    city != null ? city.getId() : null,
-                    city != null ? city.getName() : null,
-                    country != null ? country.getId() : null,
-                    country != null ? country.getName() : null,
                     buildingInfos
             );
-            campusProfiles.add(cp);
+            Long countryId = country != null ? country.getId() : null;
+            String countryName = country != null ? country.getName() : null;
+            Long cityId = city != null ? city.getId() : null;
+            String cityName = city != null ? city.getName() : null;
+            rows.add(new Row(countryId, countryName, cityId, cityName, cp));
         }
-        AuthDtos.Profile profile = new AuthDtos.Profile(campusProfiles);
+
+        Map<Long, List<Row>> byCountry = rows.stream()
+                .collect(Collectors.groupingBy(r -> r.countryId, LinkedHashMap::new, Collectors.toList()));
+
+        List<AuthDtos.CountryProfile> countryProfiles = new ArrayList<>();
+        for (Map.Entry<Long, List<Row>> countryEntry : byCountry.entrySet()) {
+            Long cId = countryEntry.getKey();
+            String cName = countryEntry.getValue().stream()
+                    .map(r -> r.countryName)
+                    .filter(n -> n != null)
+                    .findFirst()
+                    .orElse(null);
+
+            Map<Long, List<Row>> byCity = countryEntry.getValue().stream()
+                    .collect(Collectors.groupingBy(r -> r.cityId, LinkedHashMap::new, Collectors.toList()));
+            List<AuthDtos.CityProfile> cityProfiles = new ArrayList<>();
+            for (Map.Entry<Long, List<Row>> cityEntry : byCity.entrySet()) {
+                Long cityId = cityEntry.getKey();
+                String cityName = cityEntry.getValue().stream()
+                        .map(r -> r.cityName)
+                        .filter(n -> n != null)
+                        .findFirst()
+                        .orElse(null);
+                List<AuthDtos.CampusProfile> campuses = cityEntry.getValue().stream()
+                        .map(r -> r.campusProfile)
+                        .toList();
+                cityProfiles.add(new AuthDtos.CityProfile(cityId, cityName, campuses));
+            }
+            countryProfiles.add(new AuthDtos.CountryProfile(cId, cName, cityProfiles));
+        }
+
+        AuthDtos.Profile profile = new AuthDtos.Profile(countryProfiles);
         return new AuthDtos.AuthResponse(token, user.getRole().name(), campusId, user.isMustChangePassword(), profile);
     }
 

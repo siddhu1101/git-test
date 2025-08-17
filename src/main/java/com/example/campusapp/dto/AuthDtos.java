@@ -11,10 +11,9 @@ public class AuthDtos {
     public record CreateAdminRequest(@NotBlank String username, @NotBlank String password, @NotNull Long campusId) {}
     public record CreateUserRequest(@NotBlank String username, @NotBlank String password) {}
 
-    public record Profile(List<CampusProfile> campuses) {}
-    public record CampusProfile(Long campusId, String campusName,
-                                Long cityId, String cityName,
-                                Long countryId, String countryName,
-                                List<BuildingInfo> buildings) {}
+    public record Profile(List<CountryProfile> countries) {}
+    public record CountryProfile(Long countryId, String countryName, List<CityProfile> cities) {}
+    public record CityProfile(Long cityId, String cityName, List<CampusProfile> campuses) {}
+    public record CampusProfile(Long campusId, String campusName, List<BuildingInfo> buildings) {}
     public record BuildingInfo(Long id, String name) {}
 }
